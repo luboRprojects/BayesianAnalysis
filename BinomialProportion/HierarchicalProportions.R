@@ -1,8 +1,8 @@
 library(BRugs)
 
 model<-"{
- for (i in 1:n) {y[i] ~ dbern(theta[coin[i]])} # n = poèet opakování
- for (j in 1:m) {theta[j] ~ dbeta(prA,prB)I(0.00001,0.99999)} # m = poèet subjektù
+ for (i in 1:n) {y[i] ~ dbern(theta[coin[i]])} # n = poÄet opakovÃ¡nÃ­
+ for (j in 1:m) {theta[j] ~ dbeta(prA,prB)I(0.00001,0.99999)} # m = poÄet subjektÅ¯
 
 prA <- mu*kappa
 prB <- (1.0-mu)*kappa
