@@ -1,0 +1,72 @@
+---
+title: "Dirichlet Distribution Analysis"
+output: html_document
+---
+
+Dirichlet distribution is the mutinomial distribution which is parametrised by vector $\alpha$. This distribution extends Binomial problems introducing additional classes. 
+
+```{r}
+library(DirichletReg)
+```
+
+```{r}
+data <- rdirichlet(n=100, c(40, 40, 20) )
+head(data)
+apply(data, 2, mean)
+```
+
+Parameters $\alpha$ represent number of observed subjects in corresponding class. 
+
+```{r, echo=TRUE}
+plot(DR_data(data), cex = 1, a2d = list(colored = TRUE, c.grid = TRUE))
+```
+
+### Example - No prior information 
+From the credit analysis emerged that size of AAA, B and C rated companies is $\lbrace 120, 30, 10\rbrace$. There is no information from the previous year. Gelman propose non-informative prior as $\alpha_l=1$ for all classes $l=1,\ldots, k$. Posterior distribution is therefore parametrised by vector $\alpha = (121, 31, 11)$. This would result in expected probabilities of class-membership:
+
+```{r}
+credit.data <- rdirichlet(n=163, c(121, 31, 21) )
+head(credit.data)
+apply(credit.data, 2, mean)
+```
+### Example - prior from the previous year
+After the first month we analyse new 30 companies and conclude that there is 15 AAA, 10 B and 5 C companies. This indicated worseoning of economic situation. We use posterior distribution from previous year as our new prior:
+
+```{r}
+credit.data.new <- rdirichlet(n=163+30, c(121+15, 31+10, 21+5) )
+head(credit.data.new)
+apply(credit.data.new, 2, mean)
+```
+
+We can estimated confidence intervals as:
+
+```{r}
+#library(lattice)
+library(ggplot2)
+library(reshape)
+boot.res <- data.frame(matrix(1, nrow=1000, ncol=3))
+for(i in 1:1000){
+ boot.res[i, ] <- c(apply(rdirichlet(n=163+30, c(121+15, 31+10, 21+5)), 2, mean))
+}
+colnames(boot.res) <- c("AAA", "B", "C")
+melted <- melt(boot.res)
+head(melted)
+#histogram( ~value|variable, data=melted)
+ggplot(melted, aes(x=value) ) + geom_histogram(binwidth = 0.001, col="blue", fill="grey") + facet_grid(.~ variable, scales="free") + theme_bw()
+```
+
+And the intervals:
+
+```{r, message=FALSE}
+library(dplyr)
+melted %>% 
+  group_by(variable) %>% 
+  summarise(
+   p0.01 = quantile(value, probs=0.01),
+   p0.05 = quantile(value, probs=0.05),
+   p0.5 = quantile(value, probs=0.5),
+   p0.95 = quantile(value, probs=0.95),
+   p0.99 = quantile(value, probs=0.99)
+  ) 
+
+```
